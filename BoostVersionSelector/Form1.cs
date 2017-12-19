@@ -100,7 +100,7 @@ namespace BoostVersionSelector
                         sw.WriteLine(Path.GetPathRoot(selectedData.Item2)?.Replace("\\", ""));
                         if (!File.Exists(Path.Combine(selectedData.Item2, "b2.exe")))
                             sw.WriteLine("bootstrap.bat");
-                        sw.WriteLine($"b2 toolset=msvc-14.0 link=static threading=multi --without-python --without-fiber -sZLIB_SOURCE=\"E:\\zlib\" address-model=64 --build-type=complete stage -j{Environment.ProcessorCount}");
+                        sw.WriteLine($"b2 toolset=msvc-14.0 link=shared,static threading=multi --without-python --without-fiber -sZLIB_SOURCE=\"E:\\zlib\" address-model=64 --build-type=complete stage -j{Environment.ProcessorCount}");
                     }
                 }
                 p.WaitForExit();
