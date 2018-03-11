@@ -42,7 +42,7 @@ namespace BoostVersionSelector
             }
 
             _boostPaths = new Dictionary<string, Tuple<int, string>>();
-            foreach (var dir in Directory.EnumerateDirectories("E:\\boost", "boost_*"))
+            foreach (var dir in Directory.EnumerateDirectories("C:\\Dev\\boost", "boost_*"))
             {
                 if (!File.Exists(Path.Combine(dir, "boost", "version.hpp")))
                     continue;
@@ -74,11 +74,25 @@ namespace BoostVersionSelector
 
         private void button2_Click(object sender, EventArgs e)
         {
+            button3.Enabled = false;
             button2.Enabled = false;
             button1.Enabled = false;
+            Build(false);
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            button3.Enabled = false;
+            button2.Enabled = false;
+            button1.Enabled = false;
+            Build(true);
+        }
+
+        private void Build(bool isX86)
+        {
             Task.Factory.StartNew(() =>
             {
-                var selectedData = _boostPaths.FirstOrDefault(x => x.Key == (string) comboBox1.SelectedItem).Value;
+                var selectedData = _boostPaths.FirstOrDefault(x => x.Key == (string)comboBox1.SelectedItem).Value;
 
                 var p = new Process();
                 var info = new ProcessStartInfo
@@ -95,15 +109,18 @@ namespace BoostVersionSelector
                 {
                     if (sw.BaseStream.CanWrite)
                     {
-                        sw.WriteLine("\"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\VC\\Auxiliary\\Build\\vcvars64.bat\"");
+                        sw.WriteLine($"\"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\VC\\Auxiliary\\Build\\vcvars{(isX86?"32":"64")}.bat\"");
                         sw.WriteLine($"cd \"{selectedData.Item2}\"");
                         sw.WriteLine(Path.GetPathRoot(selectedData.Item2)?.Replace("\\", ""));
                         if (!File.Exists(Path.Combine(selectedData.Item2, "b2.exe")))
                             sw.WriteLine("bootstrap.bat");
-                        sw.WriteLine($"b2 toolset=msvc-14.0 link=shared,static threading=multi --without-python --without-fiber -sZLIB_SOURCE=\"E:\\zlib\" address-model=64 --build-type=complete stage -j{Environment.ProcessorCount}");
+                        sw.WriteLine($"b2 toolset=msvc-14.0 link=shared,static threading=single,multi --without-python --without-fiber -sZLIB_SOURCE=\"E:\\zlib\" address-model={(isX86?"32":"64")} --build-type=complete stage -j{Environment.ProcessorCount}");
+
+                        sw.WriteLine("PAUSE");
                     }
                 }
                 p.WaitForExit();
+                button3.Enabled = true;
                 button2.Enabled = true;
                 button1.Enabled = true;
                 MessageBox.Show(@"Boost has been built.");
